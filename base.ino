@@ -30,9 +30,9 @@ void setup()
 }
 
 void loop()
-{    
+{
     static bool connecting = false;
-    
+
     if (Particle.connected())
     {
         Particle.process();
@@ -66,19 +66,19 @@ void SerialPrintSignBuffer()
     RS485Out(SignFrameBuffer, sizeof(SignFrameBuffer));
 }
 
-int CartestianToPixelOffset(int x, int y)
+//int CartesianToPixelOffset(int x, int y)
+//{
+//    return ((y / PANEL_HEIGHT) * BLOCK_SIZE) + ((y % PANEL_HEIGHT) * PANEL_WIDTH) + (((x / PANEL_WIDTH) * PANEL_SIZE) + PANEL_WIDTH - (x % PANEL_WIDTH)) - 1;
+//}
+
+int CartesianIndexToSignIndex(int offset)
 {
-    return ((y / PANEL_HEIGHT) * BLOCK_SIZE) + ((y % PANEL_HEIGHT) * PANEL_WIDTH) + (((x / PANEL_WIDTH) * PANEL_SIZE) + PANEL_WIDTH - (x % PANEL_WIDTH)) - 1;
-}
+    int x1 = (offset/PANEL_WIDTH) % (DISPLAY_WIDTH/PANEL_WIDTH);
+    int y1 = offset / BLOCK_SIZE;
+    int x2 = PANEL_WIDTH - 1 - (offset % PANEL_WIDTH);
+    int y2 = (offset / DISPLAY_WIDTH) % PANEL_HEIGHT;
 
-int CartesianOffsetToPixelOffset(int offset)
-{
-    int y = offset / DISPLAY_WIDTH;
-    int x = offset - (y * DISPLAY_WIDTH);
-
-    y = (DISPLAY_HEIGHT - 1) - y;
-
-    return CartestianToPixelOffset(x, y);
+    return x2 + PANEL_WIDTH*y2 + PANEL_SIZE*x1 + BLOCK_SIZE*y1;
 }
 
 void EncodeFramebuffer()
@@ -90,7 +90,7 @@ void EncodeFramebuffer()
 
   for (i = 0; i < DISPLAY_SIZE; i++)
   {
-      offset = CartesianOffsetToPixelOffset(i);
+      offset = CartesianIndexToSignIndex(i);
       SignFrameBuffer[offset / 8] |= (buf[i] ? 1 : 0) << (i % 8);
   }
 }
